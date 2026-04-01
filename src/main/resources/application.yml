@@ -1,0 +1,45 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  mail:
+    host: smtp.mail.yahoo.com
+    port: 587
+    username: ${MAIL_USERNAME:dummy}
+    password: ${MAIL_PASSWORD:dummy}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/notification_db}
+    username: ${DB_USERNAME:ecommerce}
+    password: ${DB_PASSWORD:ecommerce}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    org.flywaydb: info
+    org.hibernate.SQL: debug
+    org.springframework.mail: debug
+    org.springframework.mail.javamail: debug
+    org.springframework.scheduling: debug
+    jakarta.mail: debug
+
