@@ -134,6 +134,14 @@ curl -X POST https://email-notification-service-production.up.railway.app/api/no
 "templateData": "{\"firstName\":\"addresee first name\"}"
 }'
 
+curl -X POST https://email-notification-service-production.up.railway.app/api/notifications/email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "your_email@example.com",
+    "subject": "Password Reset",
+    "templateId": "password-reset",
+    "templateData": "{\"resetLink\":\"https://example.com/reset?token=abc123\"}"
+  }'
 
 ## 🎯 Purpose
 
