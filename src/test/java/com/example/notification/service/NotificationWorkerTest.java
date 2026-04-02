@@ -158,7 +158,7 @@ class NotificationWorkerTest {
 
     private NotificationRequest buildNotification(Long id, NotificationStatus status, Integer retryCount) {
         NotificationRequest notification = new NotificationRequest();
-        notification.setId(id);
+        setId(notification, id);
         notification.setRecipientEmail("j_n_camp@hotmail.com");
         notification.setSubject("Test email");
         notification.setTemplateId("welcome-email");
@@ -169,5 +169,15 @@ class NotificationWorkerTest {
         notification.setCreatedAt(OffsetDateTime.now().minusMinutes(id));
         notification.setUpdatedAt(OffsetDateTime.now().minusMinutes(id));
         return notification;
+    }
+
+    private void setId(NotificationRequest notification, Long id) {
+        try {
+            var field = NotificationRequest.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(notification, id);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }
