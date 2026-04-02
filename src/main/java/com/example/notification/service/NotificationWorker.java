@@ -7,16 +7,14 @@ import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
 public class NotificationWorker {
 
     private static final int MAX_RETRIES = 3;
-
-    // ⬇️ backoff delay (adjust if you want)
     private static final long RETRY_DELAY_SECONDS = 60;
 
     private final NotificationRequestRepository repository;
@@ -32,22 +30,24 @@ public class NotificationWorker {
     @Transactional
     public void processPendingNotifications() {
         List<NotificationRequest> workList =
-                repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                        List.of(NotificationStatus.PENDING, NotificationStatus.FAILED));
+                repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                        List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                        MAX_RETRIES
+                );
 
         System.out.println("DEBUG worker fired at " + OffsetDateTime.now());
         System.out.println("DEBUG workList size = " + workList.size());
 
         for (NotificationRequest n : workList) {
 
-            // 🚫 stop if max retries reached
+            // Extra safety check, even though query should already exclude these
             if (n.getStatus() == NotificationStatus.FAILED &&
+                    n.getRetryCount() != null &&
                     n.getRetryCount() >= MAX_RETRIES) {
                 System.out.println("DEBUG skipping id=" + n.getId() + " because max retries reached");
                 continue;
             }
 
-            // ⏳ BACKOFF LOGIC (this is the key addition)
             if (n.getStatus() == NotificationStatus.FAILED &&
                     n.getUpdatedAt() != null) {
 

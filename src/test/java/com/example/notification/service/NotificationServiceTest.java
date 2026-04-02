@@ -50,6 +50,8 @@ class NotificationServiceTest {
         assertEquals(0, response.getRetryCount());
         assertNull(response.getLastError());
         assertNotNull(response.getCreatedAt());
+
+        verify(repository).save(any(NotificationRequest.class));
     }
 
     @Test
@@ -59,6 +61,7 @@ class NotificationServiceTest {
         notification.setRecipientEmail("j_n_camp@hotmail.com");
         notification.setSubject("Sent email");
         notification.setTemplateId("welcome-email");
+        notification.setTemplateData("{\"firstName\":\"John\"}");
         notification.setStatus(NotificationStatus.SENT);
         notification.setRetryCount(0);
         notification.setLastError(null);
@@ -71,17 +74,27 @@ class NotificationServiceTest {
 
         assertEquals(25L, response.getId());
         assertEquals("j_n_camp@hotmail.com", response.getTo());
+        assertEquals("Sent email", response.getSubject());
+        assertEquals("welcome-email", response.getTemplateId());
         assertEquals(NotificationStatus.SENT, response.getStatus());
+        assertEquals(0, response.getRetryCount());
+        assertNull(response.getLastError());
+        assertNotNull(response.getCreatedAt());
+
+        verify(repository).findById(25L);
     }
 
     @Test
     void throwsWhenNotificationIsMissing() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> notificationService.getNotification(99L));
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> notificationService.getNotification(99L)
+        );
 
         assertTrue(ex.getMessage().contains("Not found: 99"));
+        verify(repository).findById(99L);
     }
 
     private void setId(NotificationRequest notification, Long id) {

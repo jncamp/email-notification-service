@@ -2,6 +2,7 @@ package com.example.notification.service;
 
 import com.example.notification.entity.NotificationRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import java.util.Properties;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class EmailSenderServiceTest {
@@ -25,11 +29,9 @@ class EmailSenderServiceTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // mock MimeMessage creation
-        MimeMessage mimeMessage = mock(MimeMessage.class);
+        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
-        // mock template rendering
         when(templateEngine.process(anyString(), any(Context.class)))
                 .thenReturn("<html><body>Hello John</body></html>");
 
@@ -47,10 +49,7 @@ class EmailSenderServiceTest {
 
         emailSenderService.send(notification);
 
-        // verify template was used
         verify(templateEngine).process(eq("welcome-email"), any(Context.class));
-
-        // verify email was sent
         verify(mailSender).send(any(MimeMessage.class));
     }
 }

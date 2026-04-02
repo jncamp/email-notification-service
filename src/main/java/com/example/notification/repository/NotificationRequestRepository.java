@@ -8,7 +8,13 @@ import java.util.List;
 
 public interface NotificationRequestRepository extends JpaRepository<NotificationRequest, Long> {
 
-    List<NotificationRequest> findTop10ByStatusOrderByCreatedAtAsc(NotificationStatus status);
+    List<NotificationRequest> findTop10ByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
+            NotificationStatus status,
+            Integer maxRetries
+    );
 
-    List<NotificationRequest> findTop10ByStatusInOrderByCreatedAtAsc(List<NotificationStatus> statuses);
+    List<NotificationRequest> findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+            List<NotificationStatus> statuses,
+            Integer maxRetries
+    );
 }

@@ -125,6 +125,25 @@ External dependencies (SMTP) are mocked in integration tests.
 ---
 
 ## 📌 Example Curl
+## LOCAL CURL
+curl -X POST http://localhost:8080/api/notifications/email \
+-H "Content-Type: application/json" \
+-d '{
+"to":"j_n_camp@hotmail.com",
+"subject":"Welcome test",
+"templateId":"welcome-email",
+"templateData":"{\"name\":\"John\"}"
+}'
+
+curl -X POST http://localhost:8080/api/notifications/email \
+-H "Content-Type: application/json" \
+-d '{
+"to":"j_n_camp@hotmail.com",
+"subject":"Password Reset",
+"templateId":"password-reset",
+"templateData":"{\"resetLink\":\"https://example.com/reset\"}"
+}'
+curl http://localhost:8080/api/notifications/50
 
 ```bash
 curl -X POST https://email-notification-service-production.up.railway.app/api/notifications/email   -H "Content-Type: application/json"   -d '{

@@ -18,6 +18,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotificationWorkerTest {
 
+    private static final int MAX_RETRIES = 3;
+
     private NotificationRequestRepository repository;
     private EmailSenderService emailSenderService;
     private NotificationWorker worker;
@@ -34,8 +36,9 @@ class NotificationWorkerTest {
         NotificationRequest notification = buildNotification(1L, NotificationStatus.PENDING, 0);
         notification.setSubject("SUCCESS");
 
-        when(repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED)))
+        when(repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                MAX_RETRIES))
                 .thenReturn(List.of(notification));
 
         when(repository.saveAndFlush(any(NotificationRequest.class)))
@@ -56,8 +59,9 @@ class NotificationWorkerTest {
         NotificationRequest notification = buildNotification(2L, NotificationStatus.PENDING, 0);
         notification.setSubject("FAIL_SINGLE");
 
-        when(repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED)))
+        when(repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                MAX_RETRIES))
                 .thenReturn(List.of(notification));
 
         when(repository.saveAndFlush(any(NotificationRequest.class)))
@@ -82,9 +86,10 @@ class NotificationWorkerTest {
         NotificationRequest notification = buildNotification(3L, NotificationStatus.FAILED, 3);
         notification.setSubject("MAX_RETRIES");
 
-        when(repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED)))
-                .thenReturn(List.of(notification));
+        when(repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                MAX_RETRIES))
+                .thenReturn(List.of());
 
         worker.processPendingNotifications();
 
@@ -99,8 +104,9 @@ class NotificationWorkerTest {
         NotificationRequest notification = buildNotification(4L, NotificationStatus.FAILED, 2);
         notification.setSubject("RETRY_OK");
 
-        when(repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED)))
+        when(repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                MAX_RETRIES))
                 .thenReturn(List.of(notification));
 
         when(repository.saveAndFlush(any(NotificationRequest.class)))
@@ -123,8 +129,9 @@ class NotificationWorkerTest {
         NotificationRequest failure = buildNotification(6L, NotificationStatus.PENDING, 1);
         failure.setSubject("FAIL");
 
-        when(repository.findTop10ByStatusInOrderByCreatedAtAsc(
-                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED)))
+        when(repository.findTop10ByStatusInAndRetryCountLessThanOrderByCreatedAtAsc(
+                List.of(NotificationStatus.PENDING, NotificationStatus.FAILED),
+                MAX_RETRIES))
                 .thenReturn(List.of(success, failure));
 
         when(repository.saveAndFlush(any(NotificationRequest.class)))
@@ -151,6 +158,7 @@ class NotificationWorkerTest {
 
     private NotificationRequest buildNotification(Long id, NotificationStatus status, Integer retryCount) {
         NotificationRequest notification = new NotificationRequest();
+        notification.setId(id);
         notification.setRecipientEmail("j_n_camp@hotmail.com");
         notification.setSubject("Test email");
         notification.setTemplateId("welcome-email");
