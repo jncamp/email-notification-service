@@ -2,20 +2,24 @@ package com.example.notification.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class CreateEmailNotificationRequest {
 
-    @Email
-    @NotBlank
+    @NotBlank(message = "to is required")
+    @Email(message = "to must be a valid email address")
+    @Size(max = 320, message = "to must be 320 characters or less")
     private String to;
 
-    @NotBlank
+    @NotBlank(message = "subject is required")
+    @Size(max = 255, message = "subject must be 255 characters or less")
     private String subject;
 
-    @NotBlank
+    @NotBlank(message = "templateId is required")
+    @Size(max = 100, message = "templateId must be 100 characters or less")
     private String templateId;
 
-    @NotBlank
+    @NotBlank(message = "templateData is required")
     private String templateData;
 
     public String getTo() {
